@@ -21,26 +21,32 @@ class AnkiNoteModel(BaseModel):
     sentence: Optional[str] = None
     translated_sentence: Optional[str] = None
     frontLang: str = "ko"  # Default expected language for the 'front' field
-    backLang: str = "ja"  # Default expected language for the 'back' field
+    # backLang: str = [
+    #     "ja",
+    #     "ko",
+    #     "zh-tw",
+    #     "zh-cn",
+    # ]  # Default expected language for the 'back' field
 
     @model_validator(mode="after")
     def check_languages(self):
         front_lang = self.frontLang
-        back_lang = self.backLang
+        # back_lang = self.backLang
 
         # Detect languages of `front` and `back` fields
         detected_front_lang = detect(self.front)
-        detected_back_lang = detect(self.back)
+        # detected_back_lang = detect(self.back)
 
         # Validate detected languages against expected languages
         if front_lang != detected_front_lang:
             raise ValueError(
                 f"Expected language for 'front' field is '{front_lang}', but detected '{detected_front_lang}'."
             )
-        if back_lang != detected_back_lang:
-            raise ValueError(
-                f"Expected language for 'back' field is '{back_lang}', but detected '{detected_back_lang}'."
-            )
+
+        # if detected_back_lang not in back_lang:
+        #     raise ValueError(
+        #         f"Expected language for 'back' field is '{back_lang}', but detected '{detected_back_lang}'."
+        #     )
 
         return self
 
@@ -115,17 +121,19 @@ class CardCreator:
 
 if __name__ == "__main__":
     # test 1
-    note = AnkiNoteModel(
-        deckName="Korean",
-        modelName="Basic (裏表反転カード付き)",
-        front="안녕하세요",
-        back="こんにちは",
-    )
+    # note = AnkiNoteModel(
+    #     deckName="Korean",
+    #     modelName="Basic (裏表反転カード付き)",
+    #     front="안녕하세요",
+    #     back="こんにちは",
+    # )
 
     # test 2
+    # Create anki notes according to example.txt
     anki_notes = AnkiNotes.from_txt().anki_notes
     print(anki_notes)
 
     # test 3
+    # Send the created notes to Anki
     card_creator = CardCreator(anki_notes)
     card_creator.send_notes()
