@@ -1,13 +1,12 @@
 import json
 import os
 from pathlib import Path
-from typing import List, Optional, Any, Dict, Union
+from typing import List, Optional, Union
 
 import requests
 from googletrans import Translator
 from langdetect import detect
 from pydantic import BaseModel, model_validator
-
 
 DIR_PATH = Path(os.path.dirname(os.path.abspath(__file__))).parent
 API_URL = "http://127.0.0.1:8765"

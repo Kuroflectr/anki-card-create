@@ -1,6 +1,8 @@
-from src.card_creator import AnkiNotes, CardCreator, AnkiNoteModel
-import pytest
 from typing import Dict
+
+import pytest
+
+from src.card_creator import AnkiNoteModel, AnkiNotes, CardCreator
 
 
 @pytest.fixture
