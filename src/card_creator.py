@@ -1,11 +1,12 @@
-import requests
 import json
-from googletrans import Translator
-from pydantic import BaseModel, model_validator
-from typing import Optional, Dict, Any, List, Union
-from langdetect import detect
-from pathlib import Path
 import os
+from pathlib import Path
+from typing import List, Optional
+
+import requests
+from googletrans import Translator
+from langdetect import detect
+from pydantic import BaseModel, model_validator
 
 DIR_PATH = Path(os.path.dirname(os.path.abspath(__file__))).parent
 API_URL = "http://127.0.0.1:8765"
@@ -85,6 +86,9 @@ class CardCreator:
     def anki_notes(self):
         return self._anki_notes
 
+    def add_audio(self):
+        pass
+
     def send_notes(self) -> None:
         for anki_note in self._anki_notes:
             note = {
@@ -97,9 +101,15 @@ class CardCreator:
             }
             # Send the request to AnkiConnect to add the note to the deck
             response = requests.post(
-                "http://127.0.0.1:8765",
+                API_URL,
                 json.dumps(
-                    {"action": "addNote", "version": 6, "params": {"note": note}}
+                    {
+                        "action": "addNote",
+                        "version": 6,
+                        "params": {
+                            "note": note,
+                        },
+                    }
                 ),
             )
 
