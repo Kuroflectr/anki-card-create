@@ -62,6 +62,22 @@ class AnkiNoteResponse(AnkiNoteModel):
         from_attributes = True
 
 
+def create_message(card_create_response: AnkiNoteResponse) -> str:
+    # Check if the deck exists and the note was added successfully
+    if card_create_response.status_code == 200:
+        word_being_sent = f"{card_create_response.front}, {card_create_response.back}"
+        if card_create_response.error is not None:
+            # Check if the error message indicates that the deck does not exist
+            if "deck not found" in card_create_response.error:
+                return word_being_sent + ":Error: Deck does not exist"
+            else:
+                return word_being_sent + f": Error: {card_create_response.error}"
+        else:
+            return word_being_sent + ": Note added successfully"
+    else:
+        return word_being_sent + ": Error adding note to deck"
+
+
 class AnkiNotes(BaseModel):
     anki_notes: List[AnkiNoteModel]
 
@@ -75,6 +91,7 @@ class AnkiNotes(BaseModel):
         translator = Translator()
 
         translation = translator.translate(input_str, src="ko", dest="ja")
+        # TODO: Only fill the translated word into the back field when its not specified:
         translated_word = translation.text
         anki_note = AnkiNoteModel(
             deckName=deck_name,
@@ -180,33 +197,8 @@ class CardCreator:
                     }
                 ),
             )
-
-            response_json_list.append(self.create_response(anki_note, response))
+            card_create_response = self.create_response(anki_note, response)
+            response_json_list.append(card_create_response)
+            print(create_message(card_create_response))
 
         return response_json_list
-
-        # # Check if the deck exists and the note was added successfully
-        # if response.status_code == 200:
-        #     result = response.json()
-        #     word_being_sent = f"{anki_note.front}, {anki_note.back}"
-        #     if result["error"] is not None:
-        #         # Check if the error message indicates that the deck does not exist
-        #         if "deck not found" in result["error"]:
-        #             print(word_being_sent + ":Error: Deck does not exist")
-        #         else:
-        #             print(word_being_sent + ": Error: {result['error']}")
-        #     else:
-        #         print(word_being_sent + ": Note added successfully")
-        # else:
-        #     print(word_being_sent + ": Error adding note to deck")
-
-
-if __name__ == "__main__":
-    # anki_notes = AnkiNotes.from_txt(
-    #     data_fname="example.txt",
-    # ).anki_notes
-    # card_creator = CardCreator(anki_notes)
-    # response_list = card_creator.send_notes()
-    # for result in response_list:
-    #     if result.error is not None:
-    pass
