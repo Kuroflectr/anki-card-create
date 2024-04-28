@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from typing import Dict
 
 import pytest
@@ -8,7 +10,9 @@ from src.card_creator import AnkiNoteModel, AnkiNotes, CardCreator
 @pytest.fixture
 def test_features() -> Dict[str, str]:
     return {
-        "test_data": "test_data.txt",
+        "test_data": Path(os.path.dirname(os.path.abspath(__file__))).parent
+        / "tests"
+        / "test_data.txt",
         "deck_name": "test",
         "model_name": "Basic (裏表反転カード付き)+sentense",
     }
