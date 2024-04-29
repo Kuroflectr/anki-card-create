@@ -21,7 +21,7 @@ def get_args_parser(known=False):
     parser.add_argument(
         "-d",
         "--deck_name",
-        default="Korea",
+        default="korean",
         help="Name of the Anki deck to which the cards will be added.",
     )
     parser.add_argument(
