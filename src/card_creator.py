@@ -134,7 +134,6 @@ class CardCreator:
         return response.status_code
 
     def send_notes(self, audio: bool = True) -> List[AnkiNoteResponse]:
-        # TODO: not adding audio when its specified.
         response_json_list = []
         for anki_note in self._anki_notes:
             audio_str = ""
