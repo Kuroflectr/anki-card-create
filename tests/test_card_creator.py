@@ -8,13 +8,11 @@ from navertts import NaverTTS
 
 from src.card_creator import AnkiNotes, CardCreator
 
-DIR_PATH = Path(__file__).resolve().parent
-
 
 @pytest.fixture(scope="module")
-def create_test_data() -> None:
-    input_word = ["죄송합니다", "이거 얼마예요"]
-    file_path = "test_data.txt"
+def create_test_data(global_data) -> None:
+    input_word = global_data["test_word_in_txt"]
+    file_path = global_data["dir_path"] / global_data["test_file_name"]
     with open(file_path, "w") as f:
         for i, word in enumerate(input_word):
             if i > 0:
@@ -25,27 +23,18 @@ def create_test_data() -> None:
 
 
 @pytest.fixture(scope="module")
-def create_test_audio() -> str:
-    tts = NaverTTS("안녕하세요")
-    audio_name = "naver_hello_korean_test.mp3"
+def create_test_audio(global_data) -> str:
+    tts = NaverTTS(global_data["test_word"])
+    audio_name = global_data["audio_name"]
     tts.save(audio_name)
     yield audio_name
     os.remove(audio_name)  # Cleanup after the module tests are done
 
 
-@pytest.fixture(scope="function")
-def test_features(create_test_data) -> Dict[str, str]:
-    return {
-        "test_data": Path(__file__).resolve().parent.parent / "tests" / "test_data.txt",
-        "deck_name": "test",
-        "model_name": "Basic (裏表反転カード付き)+sentense",
-    }
-
-
-def test_create_anki_notes_from_txt(test_features):
+def test_create_anki_notes_from_txt(global_data, create_test_data):
     """TESTCASE1: Create anki notes from a given txt file."""
     anki_notes = AnkiNotes.from_txt(
-        data_fname=test_features["test_data"],
+        data_fname=global_data["dir_path"] / global_data["test_file_name"],
     ).anki_notes
     assert len(anki_notes) == 2
     assert anki_notes[0].front == "죄송합니다"
@@ -64,12 +53,12 @@ def test_create_anki_notes_from_input():
     assert anki_notes[0].back == "ごめん"
 
 
-def test_send_anki_note_not_audio(test_features):
+def test_send_anki_note_not_audio(global_data, create_test_data):
     """TESTCASE3: Send the created notes to the specified deck"""
     anki_notes = AnkiNotes.from_txt(
-        data_fname=test_features["test_data"],
-        deck_name=test_features["deck_name"],
-        model_name=test_features["model_name"],
+        data_fname=global_data["dir_path"] / global_data["test_file_name"],
+        deck_name=global_data["deck_name"],
+        model_name=global_data["model_name"],
     ).anki_notes
     card_creator = CardCreator(anki_notes)
 
@@ -79,9 +68,9 @@ def test_send_anki_note_not_audio(test_features):
     assert response_list[1].status_code == 200
 
 
-def test_send_anki_note_with_audio(create_test_audio):
+def test_send_anki_note_with_audio(global_data, create_test_audio):
     """TESTCASE4: Send the audio files"""
-    audio_path = DIR_PATH / create_test_audio
+    audio_path = global_data["dir_path"] / create_test_audio
     anki_notes = AnkiNotes.from_input_word(
         input_str="죄송합니다",
     ).anki_notes
