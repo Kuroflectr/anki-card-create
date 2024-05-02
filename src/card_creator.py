@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 from typing import List, Union
+import os
 
 import requests
 from googletrans import Translator
@@ -158,6 +159,9 @@ class CardCreator:
 
                 # Create a str for denoting the media file
                 audio_str = f"[sound:{media_response.audio_file_name}]"
+
+                # remove the audio file that has been sent:
+                os.remove(audio_path)
 
             # Create the Anki payload based on the created anki-note
             note = {

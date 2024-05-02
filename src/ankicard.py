@@ -54,4 +54,4 @@ if __name__ == "__main__":
         ).anki_notes
 
     card_creator = CardCreator(anki_notes)
-    response_list = card_creator.send_notes()
+    response_list = card_creator.send_notes(audio=True)
