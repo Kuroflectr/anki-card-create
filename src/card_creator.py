@@ -1,98 +1,37 @@
 import json
-import os
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Union
 
 import requests
 from googletrans import Translator
-from langdetect import detect
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 
-DIR_PATH = Path(os.path.dirname(os.path.abspath(__file__))).parent
-API_URL = "http://127.0.0.1:8765"
-DECK_NAME = "korean"
-MODEL_NAME = "Basic (裏表反転カード付き)+sentense"
-
-
-class AnkiNoteModel(BaseModel):
-    deckName: str = DECK_NAME
-    modelName: str = MODEL_NAME
-    front: str
-    back: str
-    sentence: Optional[str] = None
-    translated_sentence: Optional[str] = None
-    audio: Optional[str] = None
-    frontLang: str = "ko"  # Default expected language for the 'front' field
-    # backLang: str = [
-    #     "ja",
-    #     "ko",
-    #     "zh-tw",
-    #     "zh-cn",
-    # ]  # Default expected language for the 'back' field
-
-    @model_validator(mode="after")
-    def check_languages(self):
-        front_lang = self.frontLang
-        # back_lang = self.backLang
-
-        # Detect languages of `front` and `back` fields
-        detected_front_lang = detect(self.front)
-        # detected_back_lang = detect(self.back)
-
-        # Validate detected languages against expected languages
-        if front_lang != detected_front_lang:
-            raise ValueError(
-                f"Expected language for 'front' field is '{front_lang}', but detected '{detected_front_lang}'."
-            )
-
-        # if detected_back_lang not in back_lang:
-        #     raise ValueError(
-        #         f"Expected language for 'back' field is '{back_lang}', but detected '{detected_back_lang}'."
-        #     )
-
-        return self
-
-
-class AnkiNoteResponse(AnkiNoteModel):
-    status_code: int
-    result: Union[None, int]
-    error: Union[None, str]
-
-    class Config:
-        from_attributes = True
-
-
-def create_message(card_create_response: AnkiNoteResponse) -> str:
-    # Check if the deck exists and the note was added successfully
-    if card_create_response.status_code == 200:
-        word_being_sent = f"{card_create_response.front}, {card_create_response.back}"
-        if card_create_response.error is not None:
-            # Check if the error message indicates that the deck does not exist
-            if "deck not found" in card_create_response.error:
-                return word_being_sent + ":Error: Deck does not exist"
-            else:
-                return word_being_sent + f": Error: {card_create_response.error}"
-        else:
-            return word_being_sent + ": Note added successfully"
-    else:
-        return word_being_sent + ": Error adding note to deck"
+from src import API_URL, DECK_NAME, DIR_PATH, MODEL_NAME
+from src.models import AnkiNoteModel, AnkiNoteResponse
+from src.utils import create_audio, create_message
 
 
 class AnkiNotes(BaseModel):
+    """Create Anki notes based on the method user has specified."""
+
+    # A List for the created Anki notes.
     anki_notes: List[AnkiNoteModel]
 
     @classmethod
     def from_input_word(
         cls,
         input_str: str,
+        translated_word: str = None,
         deck_name: str = DECK_NAME,
         model_name: str = MODEL_NAME,
     ):
-        translator = Translator()
+        # Translate the word if its not specified.
+        if translated_word is None:
+            translator = Translator()
+            translation = translator.translate(input_str, src="ko", dest="ja")
+            translated_word = translation.text
 
-        translation = translator.translate(input_str, src="ko", dest="ja")
-        # TODO: Only fill the translated word into the back field when its not specified:
-        translated_word = translation.text
+        # Create the anki model
         anki_note = AnkiNoteModel(
             deckName=deck_name,
             modelName=model_name,
@@ -148,10 +87,6 @@ class CardCreator:
     def anki_notes(self):
         return self._anki_notes
 
-    # TODO: Add audio to the anki cards
-    def add_audio(self):
-        pass
-
     @staticmethod
     def create_response(
         anki_note: AnkiNoteResponse,
@@ -171,9 +106,37 @@ class CardCreator:
 
         return AnkiNoteResponse(**anki_note_dict)
 
-    def send_notes(self) -> List[AnkiNoteResponse]:
+    @staticmethod
+    def send_media(audio_path: Union[Path, str]) -> None:
+        audio_filename = audio_path.name.__str__()
+        audio_file_path = audio_path.parent.__str__()
+        # Store the audio file in Anki's media folder
+        response = requests.post(
+            API_URL,
+            json={
+                "action": "storeMediaFile",
+                "version": 6,
+                "params": {
+                    "filename": audio_filename,
+                    "path": audio_file_path,
+                },
+            },
+        )
+
+        return response.status_code
+
+    def send_notes(self, audio: bool = True) -> List[AnkiNoteResponse]:
+        # TODO: not adding audio when its specified.
         response_json_list = []
         for anki_note in self._anki_notes:
+            # Create the mp3 file
+            audio_path = create_audio(anki_note.front)
+
+            # Send the mp3 to Anki's media folder
+            media_response_code = self.send_media(audio_path)
+            if media_response_code != 200:
+                print("Adding audio received failure")
+
             # Create the anki payload based on the created anki-note
             note = {
                 "deckName": anki_note.deckName,
@@ -197,6 +160,8 @@ class CardCreator:
                     }
                 ),
             )
+
+            # Translate the API response to a readable message
             card_create_response = self.create_response(anki_note, response)
             response_json_list.append(card_create_response)
             print(create_message(card_create_response))
