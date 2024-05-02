@@ -108,6 +108,14 @@ class CardCreator:
 
     @staticmethod
     def send_media(audio_path: Union[Path, str]) -> None:
+        """Send the created mp3 file to Anki collection folder (collection.media/)
+
+        Args:
+            audio_path (Union[Path, str]): _description_
+
+        Returns:
+            _type_: _description_
+        """
         audio_filename = audio_path.name.__str__()
         audio_file_path = audio_path.parent.__str__()
         # Store the audio file in Anki's media folder
@@ -129,20 +137,25 @@ class CardCreator:
         # TODO: not adding audio when its specified.
         response_json_list = []
         for anki_note in self._anki_notes:
-            # Create the mp3 file
-            audio_path = create_audio(anki_note.front)
+            audio_str = ""
+            if audio:
+                # Create the mp3 file
+                audio_path = create_audio(anki_note.front)
 
-            # Send the mp3 to Anki's media folder
-            media_response_code = self.send_media(audio_path)
-            if media_response_code != 200:
-                print("Adding audio received failure")
+                # Send the mp3 to Anki's media folder
+                media_response_code = self.send_media(audio_path)
+                if media_response_code != 200:
+                    print("Adding audio received failure")
 
-            # Create the anki payload based on the created anki-note
+                # Create a str for denoting the media file
+                audio_str = f"[sound: {audio_path}]"
+
+            # Create the Anki payload based on the created anki-note
             note = {
                 "deckName": anki_note.deckName,
                 "modelName": anki_note.modelName,
                 "fields": {
-                    "表面": anki_note.front,
+                    "表面": anki_note.front + audio_str,
                     "裏面": anki_note.back,
                 },
             }
