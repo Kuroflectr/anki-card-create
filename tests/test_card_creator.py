@@ -1,10 +1,14 @@
+import json
 import os
 from pathlib import Path
 from typing import Dict
 
 import pytest
+from navertts import NaverTTS
 
 from src.card_creator import AnkiNotes, CardCreator
+
+DIR_PATH = Path(__file__).resolve().parent
 
 
 @pytest.fixture(scope="module")
@@ -18,6 +22,15 @@ def create_test_data() -> None:
             f.write(word)
     yield
     os.remove(file_path)  # Cleanup after the module tests are done
+
+
+@pytest.fixture(scope="module")
+def create_test_audio() -> str:
+    tts = NaverTTS("안녕하세요")
+    audio_name = "naver_hello_korean_test.mp3"
+    tts.save(audio_name)
+    yield audio_name
+    os.remove(audio_name)  # Cleanup after the module tests are done
 
 
 @pytest.fixture(scope="function")
@@ -66,6 +79,13 @@ def test_send_anki_note_not_audio(test_features):
     assert response_list[1].status_code == 200
 
 
-# def test_send_duplicated_anki_note(voc_txt):
-#     deck_name = "test"
-#     model_name = "Basic (裏表反転カード付き)+sentense"
+def test_send_anki_note_with_audio(create_test_audio):
+    """TESTCASE4: Send the audio files"""
+    audio_path = DIR_PATH / create_test_audio
+    anki_notes = AnkiNotes.from_input_word(
+        input_str="죄송합니다",
+    ).anki_notes
+    card_creator = CardCreator(anki_notes)
+
+    response = card_creator.send_media(audio_path)
+    assert response.error is None

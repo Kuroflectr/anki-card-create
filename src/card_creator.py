@@ -5,10 +5,11 @@ from typing import List, Union
 import requests
 from googletrans import Translator
 from pydantic import BaseModel
+from requests import Response
 
 from src import API_URL, DECK_NAME, DIR_PATH, MODEL_NAME
-from src.models import AnkiNoteModel, AnkiNoteResponse
-from src.utils import create_audio, create_message
+from src.models import AnkiNoteModel, AnkiNoteResponse, AnkiSendMediaResponse
+from src.utils import MediaAdditionError, create_audio, create_message
 
 
 class AnkiNotes(BaseModel):
@@ -107,7 +108,7 @@ class CardCreator:
         return AnkiNoteResponse(**anki_note_dict)
 
     @staticmethod
-    def send_media(audio_path: Union[Path, str]) -> None:
+    def send_media(audio_path: Union[Path, str]) -> AnkiSendMediaResponse:
         """Send the created mp3 file to Anki collection folder (collection.media/)
 
         Args:
@@ -116,10 +117,13 @@ class CardCreator:
         Returns:
             _type_: _description_
         """
+        if not isinstance(audio_path, Path):
+            audio_path = Path(audio_path)
+
         audio_filename = audio_path.name.__str__()
-        audio_file_path = audio_path.parent.__str__()
+        audio_file_path = audio_path.__str__()
         # Store the audio file in Anki's media folder
-        response = requests.post(
+        response: Response = requests.post(
             API_URL,
             json={
                 "action": "storeMediaFile",
@@ -131,7 +135,12 @@ class CardCreator:
             },
         )
 
-        return response.status_code
+        return AnkiSendMediaResponse(
+            audio_path=audio_file_path,
+            status_code=response.status_code,
+            result=json.loads(response.text)["result"],
+            error=json.loads(response.text)["error"],
+        )
 
     def send_notes(self, audio: bool = True) -> List[AnkiNoteResponse]:
         response_json_list = []
@@ -142,9 +151,9 @@ class CardCreator:
                 audio_path = create_audio(anki_note.front)
 
                 # Send the mp3 to Anki's media folder
-                media_response_code = self.send_media(audio_path)
-                if media_response_code != 200:
-                    print("Adding audio received failure")
+                media_response = self.send_media(audio_path)
+                if media_response.error is not None:
+                    raise MediaAdditionError(media_response)
 
                 # Create a str for denoting the media file
                 audio_str = f"[sound: {audio_path}]"

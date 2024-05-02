@@ -5,7 +5,7 @@ from typing import Union
 from navertts import NaverTTS
 
 from src import MP3_PATH
-from src.models import AnkiNoteResponse
+from src.models import AnkiNoteResponse, AnkiSendMediaResponse
 
 
 def create_message(card_create_response: AnkiNoteResponse) -> str:
@@ -46,3 +46,13 @@ def create_audio(text: str, path: Union[Path, str] = MP3_PATH) -> Union[Path, st
     tts = NaverTTS(text)
     tts.save(path / f"naver_{uuid.uuid4()}.mp3")
     return path / f"naver_{uuid.uuid4()}.mp3"
+
+
+class MediaAdditionError(Exception):
+    """Exception raised when adding media fails."""
+
+    def __init__(self, response: AnkiSendMediaResponse, message="Failed to add media"):
+        self.status_code = response.status_code
+        message = response.error
+        self.message = f"{message}. Status code: {self.status_code}"
+        super().__init__(self.message)

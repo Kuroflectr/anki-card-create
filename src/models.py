@@ -52,3 +52,10 @@ class AnkiNoteResponse(AnkiNoteModel):
 
     class Config:
         from_attributes = True
+
+
+class AnkiSendMediaResponse(BaseModel):
+    audio_path: str
+    status_code: int
+    result: Union[None, str] = None
+    error: Union[None, str] = None
