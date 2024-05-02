@@ -56,6 +56,7 @@ class AnkiNoteResponse(AnkiNoteModel):
 
 class AnkiSendMediaResponse(BaseModel):
     audio_path: str
+    audio_file_name: str
     status_code: int
     result: Union[None, str] = None
     error: Union[None, str] = None

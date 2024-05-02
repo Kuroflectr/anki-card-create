@@ -44,8 +44,9 @@ def create_audio(text: str, path: Union[Path, str] = MP3_PATH) -> Union[Path, st
     """
     # texts = [note.front for note in self._anki_notes]
     tts = NaverTTS(text)
-    tts.save(path / f"naver_{uuid.uuid4()}.mp3")
-    return path / f"naver_{uuid.uuid4()}.mp3"
+    audio_filename = path / f"naver_{uuid.uuid4()}.mp3"
+    tts.save(audio_filename)
+    return audio_filename
 
 
 class MediaAdditionError(Exception):

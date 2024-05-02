@@ -137,6 +137,7 @@ class CardCreator:
 
         return AnkiSendMediaResponse(
             audio_path=audio_file_path,
+            audio_file_name=audio_filename,
             status_code=response.status_code,
             result=json.loads(response.text)["result"],
             error=json.loads(response.text)["error"],
@@ -156,7 +157,7 @@ class CardCreator:
                     raise MediaAdditionError(media_response)
 
                 # Create a str for denoting the media file
-                audio_str = f"[sound: {audio_path}]"
+                audio_str = f"[sound:{media_response.audio_file_name}]"
 
             # Create the Anki payload based on the created anki-note
             note = {

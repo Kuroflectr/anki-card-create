@@ -1,6 +1,7 @@
-import pytest
 from pathlib import Path
 from typing import Dict
+
+import pytest
 
 
 @pytest.fixture(scope="session")

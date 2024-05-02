@@ -1,7 +1,4 @@
-import json
 import os
-from pathlib import Path
-from typing import Dict
 
 import pytest
 from navertts import NaverTTS
@@ -43,10 +40,12 @@ def test_create_anki_notes_from_txt(global_data, create_test_data):
     assert anki_notes[1].back == "いくらですか"
 
 
-def test_create_anki_notes_from_input():
-    """TESTCASE2: Create anki notes from the input"""
+def test_create_anki_notes_from_input(global_data):
+    """TESTCASE2: Create anki notes from a single input"""
     anki_notes = AnkiNotes.from_input_word(
         input_str="죄송합니다",
+        deck_name=global_data["deck_name"],
+        model_name=global_data["model_name"],
     ).anki_notes
     assert len(anki_notes) == 1
     assert anki_notes[0].front == "죄송합니다"
@@ -54,7 +53,7 @@ def test_create_anki_notes_from_input():
 
 
 def test_send_anki_note_not_audio(global_data, create_test_data):
-    """TESTCASE3: Send the created notes to the specified deck"""
+    """TESTCASE3: Send the created notes to the specified deck, without generating audios"""
     anki_notes = AnkiNotes.from_txt(
         data_fname=global_data["dir_path"] / global_data["test_file_name"],
         deck_name=global_data["deck_name"],
@@ -68,13 +67,30 @@ def test_send_anki_note_not_audio(global_data, create_test_data):
     assert response_list[1].status_code == 200
 
 
-def test_send_anki_note_with_audio(global_data, create_test_audio):
-    """TESTCASE4: Send the audio files"""
+def test_send_audio(global_data, create_test_audio):
+    """TESTCASE4: Send the audio files to the Anki collection directory, without attaching it to the ankicard"""
     audio_path = global_data["dir_path"] / create_test_audio
     anki_notes = AnkiNotes.from_input_word(
         input_str="죄송합니다",
+        deck_name=global_data["deck_name"],
+        model_name=global_data["model_name"],
     ).anki_notes
     card_creator = CardCreator(anki_notes)
 
     response = card_creator.send_media(audio_path)
     assert response.error is None
+    assert response.audio_file_name == global_data["audio_name"]
+
+
+def test_send_anki_note_with_audio(global_data):
+    """TESTCASE5: Create an Anki card with audio"""
+
+    anki_notes = AnkiNotes.from_input_word(
+        input_str=global_data["test_word"],
+        deck_name=global_data["deck_name"],
+        model_name=global_data["model_name"],
+    ).anki_notes
+    card_creator = CardCreator(anki_notes)
+    response_list = card_creator.send_notes(audio=True)
+
+    assert response_list[0].status_code == 200
