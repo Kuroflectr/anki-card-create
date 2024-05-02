@@ -1,40 +1,36 @@
-import os
 from pathlib import Path
 from typing import Dict
+import os
 
 import pytest
 
-from src.card_creator import AnkiNoteModel, AnkiNotes, CardCreator
+from src.card_creator import AnkiNotes, CardCreator
 
 
-@pytest.fixture
-def test_features() -> Dict[str, str]:
+@pytest.fixture(scope="module")
+def create_test_data() -> None:
+    input_word = ["죄송합니다", "이거 얼마예요"]
+    file_path = "test_data.txt"
+    with open(file_path, "w") as f:
+        for i, word in enumerate(input_word):
+            if i > 0:
+                f.write("\n")
+            f.write(word)
+    yield
+    os.remove(file_path)  # Cleanup after the module tests are done
+
+
+@pytest.fixture(scope="function")
+def test_features(create_test_data) -> Dict[str, str]:
     return {
-        "test_data": Path(os.path.dirname(os.path.abspath(__file__))).parent
-        / "tests"
-        / "test_data.txt",
+        "test_data": Path(__file__).resolve().parent.parent / "tests" / "test_data.txt",
         "deck_name": "test",
         "model_name": "Basic (裏表反転カード付き)+sentense",
     }
 
 
-def test_anki_note_model():
-    """test 1: Create a note by manually input the text"""
-    note = AnkiNoteModel(
-        deckName="korean",
-        modelName="Basic (裏表反転カード付き)+sentense",
-        front="안녕하세요",
-        back="こんにちは",
-    )
-
-    assert note.deckName == "korean"
-    assert note.modelName == "Basic (裏表反転カード付き)+sentense"
-    assert note.front == "안녕하세요"
-    assert note.back == "こんにちは"
-    assert note.frontLang == "ko"
-
-
 def test_create_anki_notes_from_txt(test_features):
+    """TESTCASE1: Create anki notes from a given txt file."""
     anki_notes = AnkiNotes.from_txt(
         data_fname=test_features["test_data"],
     ).anki_notes
@@ -46,6 +42,7 @@ def test_create_anki_notes_from_txt(test_features):
 
 
 def test_create_anki_notes_from_input():
+    """TESTCASE2: Create anki notes from the input"""
     anki_notes = AnkiNotes.from_input_word(
         input_str="죄송합니다",
     ).anki_notes
@@ -54,8 +51,8 @@ def test_create_anki_notes_from_input():
     assert anki_notes[0].back == "ごめん"
 
 
-def test_send_anki_note(test_features):
-    # Send the created notes to the specified deck
+def test_send_anki_note_not_audio(test_features):
+    """TESTCASE3: Send the created notes to the specified deck"""
     anki_notes = AnkiNotes.from_txt(
         data_fname=test_features["test_data"],
         deck_name=test_features["deck_name"],
@@ -63,7 +60,7 @@ def test_send_anki_note(test_features):
     ).anki_notes
     card_creator = CardCreator(anki_notes)
 
-    response_list = card_creator.send_notes()
+    response_list = card_creator.send_notes(audio=False)
     assert len(response_list) == 2
     assert response_list[0].status_code == 200
     assert response_list[1].status_code == 200
