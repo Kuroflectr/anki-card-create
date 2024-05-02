@@ -4,3 +4,5 @@ data
 */__pycache__
 */*.txt
 *.txt
+.pytest_cache
+.ruff_cache
