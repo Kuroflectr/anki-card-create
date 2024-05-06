@@ -15,3 +15,18 @@ def global_data() -> Dict[str, str]:
         "model_name": "Basic (裏表反転カード付き)+sentense",
         "audio_name": "naver_hello_korean_test.mp3",
     }
+
+
+@pytest.fixture(scope="session")
+def setup_anki_mock(mocker):
+    # Sample data to mimic the AnkiConnect response
+    expected_response = {
+        "result": 1496198395707,
+        "error": None,
+    }
+    # Mock requests.post to return a mock response object with .json() method
+    mocker.patch(
+        "requests.post",
+        return_value=mocker.Mock(status_code=200, json=lambda: expected_response),
+    )
+    yield mocker

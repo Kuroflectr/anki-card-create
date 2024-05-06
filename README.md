@@ -1,6 +1,6 @@
 # Create Korean Anki cards with audios
 
-Add the anki card (korean vocabulary) simply with only one command `kanki`
+Add anki cards with audios (korean vocabulary) simply with only one command: `kanki`.
 
 ## Package setup
 
