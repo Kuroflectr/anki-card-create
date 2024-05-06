@@ -13,14 +13,16 @@ poetry install
 
 ## Usage
 
-1. Ensure that anki has been running in the background. 
+1. Ensure that Anki has been running in the background. 
 
-2. Create a single anki card using: 
+2. Ensure that anki-connect has been installed. 
+
+3. Create a single anki card using: 
 ```
 kanki -w 안녕하세요
 ```
 
-3. Or, create multiple anki cards using: 
+4. Or, create multiple anki cards using: 
 ```
 kanki -f <file-with-korean-vocabularies-listed>
 ```
