@@ -1,6 +1,7 @@
 import uuid
 from pathlib import Path
 from typing import Union
+import os 
 
 from navertts import NaverTTS
 
@@ -43,6 +44,10 @@ def create_audio(text: str, path: Union[Path, str] = MP3_PATH) -> Union[Path, st
         Union[Path, str]: The path of the output audio file.
     """
     # texts = [note.front for note in self._anki_notes]
+    if not isinstance(path, Path): 
+        path = Path(path)
+    if not path.exists():
+        path.mkdir(parents=True, exist_ok=True)
     tts = NaverTTS(text)
     audio_filename = path / f"naver_{uuid.uuid4()}.mp3"
     tts.save(audio_filename)
