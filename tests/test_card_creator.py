@@ -22,7 +22,7 @@ def create_test_data(global_data) -> None:
 @pytest.fixture(scope="module")
 def create_test_audio(global_data) -> str:
     tts = NaverTTS(global_data["test_word"])
-    audio_name = global_data["audio_name"]
+    audio_name = global_data["dir_path"] / global_data["audio_name"]
     tts.save(audio_name)
     yield audio_name
     os.remove(audio_name)  # Cleanup after the module tests are done
