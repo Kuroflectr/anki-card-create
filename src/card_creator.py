@@ -1,7 +1,7 @@
 import json
+import os
 from pathlib import Path
 from typing import List, Union
-import os
 
 import requests
 from googletrans import Translator

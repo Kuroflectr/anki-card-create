@@ -1,5 +1,3 @@
-import json
-import pytest
 from src.card_creator import AnkiNotes, CardCreator
 
 
