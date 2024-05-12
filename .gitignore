@@ -6,3 +6,5 @@ data
 *.txt
 .pytest_cache
 .ruff_cache
+dist/
+__pycache__

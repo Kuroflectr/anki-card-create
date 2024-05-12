@@ -2,9 +2,9 @@
 name = "anki-card-create"
 version = "0.1.0"
 description = ""
-authors = ["PeiHsuan Lin <peihsuan.lin@casewise.co.jp>"]
+authors = ["Kuroflectr <ike.kuroflectr@gmail.com>"]
 readme = "README.md"
-packages = [{include = "src"}, {include = "kankicard"}]
+packages = [{include = "src"}]
 
 [tool.poetry.dependencies]
 python = "^3.11"
@@ -43,4 +43,4 @@ extend-include = ["*.ipynb"]
 ignore = ["F841"]
 
 [tool.poetry.scripts]
-kanki = "kankicard.main:main"
+kanki = "main:main"
