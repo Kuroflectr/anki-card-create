@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "anki-card-create"
-version = "0.1.0"
+version = "0.1.2"
 description = ""
 authors = ["Kuroflectr <ike.kuroflectr@gmail.com>"]
 readme = "README.md"
@@ -43,4 +43,4 @@ extend-include = ["*.ipynb"]
 ignore = ["F841"]
 
 [tool.poetry.scripts]
-kanki = "main:main"
+kanki = "src.main:main"

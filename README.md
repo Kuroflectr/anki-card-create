@@ -6,9 +6,7 @@ Add anki cards with audios (korean vocabulary) simply with only one command: `ka
 
 Set up the package using: 
 ```
-git clone https://github.com/Kuroflectr/anki-card-create.git
-cd ./anki-card-create
-poetry install
+pip install anki-card-create
 ```
 
 ## Usage
