@@ -2,6 +2,11 @@
 
 Add anki cards with audios (korean vocabulary) simply with only one command: `kanki`.
 
+## Before Using `kanki`
+
+Open Anki, go to Tools -> Add-ons -> Get Add-ons... and enter the code `2055492159` to install AnkiConnect.
+
+
 ## Package setup
 
 Set up the package using: 

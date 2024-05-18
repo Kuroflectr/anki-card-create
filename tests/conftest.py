@@ -2,6 +2,7 @@ from pathlib import Path
 from typing import Dict
 
 import pytest
+from src.models import AnkiNoteResponse
 
 
 @pytest.fixture(scope="session")
@@ -30,3 +31,27 @@ def setup_anki_mock(mocker):
         return_value=mocker.Mock(status_code=200, json=lambda: expected_response),
     )
     yield mocker
+
+
+@pytest.fixture(scope="function")
+def response_anki_note(global_data):
+    # status_code: int
+    # result: Union[None, int]
+    # error: Union[None, str]
+    # deckName: str = DECK_NAME
+    # modelName: str = MODEL_NAME
+    # front: str
+    # back: str = None
+    # sentence: Optional[str] = None
+    # translated_sentence: Optional[str] = None
+    # audio: Optional[str] = None
+    # frontLang: str = "ko"
+    response_content = {
+        "status_code": 200,
+        "result": 1496198395707,
+        "error": None,
+        "deckName": global_data["deck_name"],
+        "front": global_data["test_word"],
+        "modelName": global_data["model_name"],
+    }
+    return response_content
